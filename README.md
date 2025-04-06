@@ -36,6 +36,20 @@ Run the interactive menu:
 sudo unitctl
 ```
 
+Show version:
+```bash
+unitctl -v
+# or
+unitctl --version
+```
+
+Show help:
+```bash
+unitctl -h
+# or
+unitctl --help
+```
+
 ### Main Menu Options
 
 The menu dynamically adjusts based on whether a unit is currently loaded:
