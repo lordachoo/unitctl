@@ -5,7 +5,7 @@ import argparse
 from pathlib import Path
 from typing import Dict, Optional, List
 
-VERSION = "1.1"
+VERSION = "1.2"
 
 def print_version():
     print(f"unitctl v{VERSION}")
@@ -55,14 +55,16 @@ class UnitCtl:
                 print("4. Save unit file")
                 print("5. Use template")
                 print("6. Validate unit")
-                print("7. Exit")
-                max_choice = 7
+                print("7. Delete unit")
+                print("8. Exit")
+                max_choice = 8
             else:
                 print("3. Save unit file")
                 print("4. Use template")
                 print("5. Validate unit")
-                print("6. Exit")
-                max_choice = 6
+                print("6. Delete unit")
+                print("7. Exit")
+                max_choice = 7
             choice = input(f"Select option (1-{max_choice}): ").strip()
             
             if choice == '1':
@@ -78,12 +80,19 @@ class UnitCtl:
             elif (self.unit_name and choice == '6') or (not self.unit_name and choice == '5'):
                 self.validate_unit()
             elif (self.unit_name and choice == '7') or (not self.unit_name and choice == '6'):
+                self._delete_unit()
+            elif (self.unit_name and choice == '8') or (not self.unit_name and choice == '7'):
                 sys.exit(0)
             else:
                 print("Invalid choice, please try again.")
 
     def create_unit(self) -> None:
         """Create a new systemd unit from scratch."""
+        if self.unit_name:
+            print("\nCurrent unit will be discarded. Continue? (y/N): ", end='')
+            if input().strip().lower() != 'y':
+                return
+        
         print("\nUNIT TYPE:")
         print("1. Service")
         print("2. Timer")
@@ -199,6 +208,45 @@ class UnitCtl:
                 break
             else:
                 print("Invalid choice")
+
+    def _delete_unit(self) -> None:
+        """Delete a systemd unit and its drop-in directory."""
+        if not self.unit_name:
+            unit_name = input("Enter unit name to delete (without extension): ").strip()
+            unit_type = input("Enter unit type (service/timer/socket): ").strip()
+        else:
+            unit_name = self.unit_name
+            unit_type = self.unit_type
+            
+        unit_path = Path(f"/etc/systemd/system/{unit_name}.{unit_type}")
+        dropin_dir = Path(f"/etc/systemd/system/{unit_name}.{unit_type}.d")
+        
+        try:
+            # Delete drop-in directory if exists
+            if dropin_dir.exists():
+                for file in dropin_dir.glob('*'):
+                    file.unlink()
+                dropin_dir.rmdir()
+                print(f"Deleted drop-in directory: {dropin_dir}")
+            
+            # Delete main unit file if exists
+            if unit_path.exists():
+                unit_path.unlink()
+                print(f"Deleted unit file: {unit_path}")
+            
+            print("\nRemember to run:")
+            print("  sudo systemctl daemon-reload")
+            print(f"  sudo systemctl disable {unit_name}.{unit_type}")
+            
+            # Clear current unit if it's the one being deleted
+            if self.unit_name == unit_name and self.unit_type == unit_type:
+                self.unit_name = ""
+                self.unit_data = {'Unit': {}, 'Service': {}, 'Install': {}, 'Timer': {}}
+                
+        except PermissionError:
+            print("\nError: Permission denied. Try running with sudo.")
+        except Exception as e:
+            print(f"\nError deleting unit: {e}")
 
     def _edit_section(self, section: str) -> None:
         """Edit a specific section of the unit."""

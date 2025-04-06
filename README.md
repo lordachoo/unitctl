@@ -60,7 +60,8 @@ The menu dynamically adjusts based on whether a unit is currently loaded:
 3. **Save unit file** - Write current configuration
 4. **Use template** - Start from predefined configuration
 5. **Validate unit** - Check current configuration
-6. **Exit** - Quit the program
+6. **Delete unit** - Remove a unit by name
+7. **Exit** - Quit the program
 
 **With unit loaded:**
 1. **Create new unit** - Start fresh (discards current)
@@ -69,7 +70,8 @@ The menu dynamically adjusts based on whether a unit is currently loaded:
 4. **Save unit file** - Write current configuration
 5. **Use template** - Apply template to current unit
 6. **Validate unit** - Check configuration
-7. **Exit** - Quit the program
+7. **Delete unit** - Remove current unit and drop-in files
+8. **Exit** - Quit the program
 
 **Editing Features:**
 - Section-by-section editing (Unit, Service, Install, Timer)
@@ -140,9 +142,9 @@ sudo unitctl
 6. Follow post-install instructions
 ```
 
-## Post-Installation
+## Unit Management
 
-After saving a unit file, run:
+**After saving a unit file:**
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable --now unit-name.type
