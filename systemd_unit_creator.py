@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 from typing import Dict, Optional, List
 
-class SystemdUnitCreator:
+class UnitCtl:
     def __init__(self):
         self.unit_name: str = ""
         self.unit_type: str = "service"
@@ -346,5 +346,5 @@ class SystemdUnitCreator:
             print(f"\nError creating file: {e}")
 
 if __name__ == "__main__":
-    creator = SystemdUnitCreator()
+    creator = UnitCtl()
     creator.main_menu()
