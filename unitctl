@@ -27,7 +27,7 @@ class UnitCtl:
             print("\nSYSTEMD UNIT CREATOR")
             print("1. Create new unit")
             print("2. Edit existing unit")
-            print("3. Generate unit file")
+            print("3. Save unit file")
             print("4. Use template")
             print("5. Exit")
             choice = input("Select option (1-5): ").strip()
