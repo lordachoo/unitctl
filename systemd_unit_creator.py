@@ -30,7 +30,7 @@ class SystemdUnitCreator:
             print("3. Generate unit file")
             print("4. Use template")
             print("5. Exit")
-            choice = input("Select option (1-4): ").strip()
+            choice = input("Select option (1-5): ").strip()
             
             if choice == '1':
                 self.create_unit()
@@ -166,6 +166,11 @@ class SystemdUnitCreator:
     def _edit_section(self, section: str) -> None:
         """Edit a specific section of the unit."""
         print(f"\nEDITING {section} SECTION")
+        
+        # Initialize section if it doesn't exist
+        if section not in self.unit_data:
+            self.unit_data[section] = {}
+            
         print("Current values:")
         for key, value in self.unit_data[section].items():
             print(f"{key}={value}")
@@ -235,7 +240,10 @@ class SystemdUnitCreator:
         for key, template in templates.items():
             print(f"{key}. {template['name']}")
         
-        choice = input("Select template (1-2): ").strip()
+        print("\nSelect template:")
+        print("1. Web Application (service)")
+        print("2. Periodic Task (timer)")
+        choice = input("Enter choice (1-2): ").strip()
         if choice in templates:
             template = templates[choice]
             self.unit_name = input(f"Unit name for {template['name']}: ").strip()
