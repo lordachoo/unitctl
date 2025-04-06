@@ -38,23 +38,34 @@ class UnitCtl:
                 
             print("\n1. Create new unit")
             print("2. Edit existing unit")
-            print("3. Save unit file")
-            print("4. Use template")
-            print("5. Validate unit")
-            print("6. Exit")
-            choice = input("Select option (1-5): ").strip()
+            if self.unit_name:
+                print("3. Edit current unit")
+                print("4. Save unit file")
+                print("5. Use template")
+                print("6. Validate unit")
+                print("7. Exit")
+                max_choice = 7
+            else:
+                print("3. Save unit file")
+                print("4. Use template")
+                print("5. Validate unit")
+                print("6. Exit")
+                max_choice = 6
+            choice = input(f"Select option (1-{max_choice}): ").strip()
             
             if choice == '1':
                 self.create_unit()
             elif choice == '2':
                 self.edit_unit()
-            elif choice == '3':
+            elif self.unit_name and choice == '3':
+                self._edit_loaded_unit()
+            elif (self.unit_name and choice == '4') or (not self.unit_name and choice == '3'):
                 self.generate_file()
-            elif choice == '4':
+            elif (self.unit_name and choice == '5') or (not self.unit_name and choice == '4'):
                 self._use_template()
-            elif choice == '5':
+            elif (self.unit_name and choice == '6') or (not self.unit_name and choice == '5'):
                 self.validate_unit()
-            elif choice == '6':
+            elif (self.unit_name and choice == '7') or (not self.unit_name and choice == '6'):
                 sys.exit(0)
             else:
                 print("Invalid choice, please try again.")
