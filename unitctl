@@ -435,9 +435,26 @@ class UnitCtl:
                 content.append("")
         
         try:
-            path = Path(f"/etc/systemd/system/{self.unit_name}.{self.unit_type}")
-            path.write_text("\n".join(content).strip())
-            print(f"\nSuccess! Unit file created at {path}")
+            # Create main unit file
+            unit_path = Path(f"/etc/systemd/system/{self.unit_name}.{self.unit_type}")
+            unit_path.write_text("\n".join(content).strip())
+            
+            # Create drop-in directory
+            dropin_dir = Path(f"/etc/systemd/system/{self.unit_name}.{self.unit_type}.d")
+            try:
+                dropin_dir.mkdir(mode=0o755, exist_ok=True)
+                (dropin_dir / "README").write_text(
+                    "# Place override files in this directory\n"
+                    "# Files should be named *.conf and will be applied in alphabetical order\n"
+                    "# Example: 10-custom.conf\n"
+                    "# See systemd.unit(5) man page for details"
+                )
+                print(f"\nSuccess! Unit file created at {unit_path}")
+                print(f"Drop-in directory created at {dropin_dir}")
+            except PermissionError:
+                print(f"\nWarning: Could not create drop-in directory {dropin_dir}")
+                print(f"Success! Unit file created at {unit_path} (without drop-in directory)")
+            
             print("\nRemember to run:")
             print(f"  sudo systemctl daemon-reload")
             print(f"  sudo systemctl enable {self.unit_name}.{self.unit_type}")

@@ -148,6 +148,30 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now unit-name.type
 ```
 
+### Drop-In Directories
+
+unitctl automatically creates a `.d` drop-in directory for each unit (e.g. `unit-name.service.d/`). 
+This allows adding override files without modifying the main unit file.
+
+**How drop-ins work:**
+- Files must end with `.conf` (e.g. `10-custom.conf`)
+- Applied in alphabetical order
+- Can override any section/parameter from main unit
+- Changes take effect after `daemon-reload`
+
+**Example override file:**
+```ini
+# /etc/systemd/system/unit-name.service.d/10-custom.conf
+[Service]
+Environment=DEBUG=true
+RestartSec=5s
+```
+
+Benefits:
+- Preserve original unit file during upgrades
+- Modular configuration
+- Easier to manage environment-specific settings
+
 ## Requirements
 
 - Python 3.6+
