@@ -28,7 +28,8 @@ class SystemdUnitCreator:
             print("1. Create new unit")
             print("2. Edit existing unit")
             print("3. Generate unit file")
-            print("4. Exit")
+            print("4. Use template")
+            print("5. Exit")
             choice = input("Select option (1-4): ").strip()
             
             if choice == '1':
@@ -38,6 +39,8 @@ class SystemdUnitCreator:
             elif choice == '3':
                 self.generate_file()
             elif choice == '4':
+                self._use_template()
+            elif choice == '5':
                 sys.exit(0)
             else:
                 print("Invalid choice, please try again.")
@@ -106,8 +109,142 @@ class SystemdUnitCreator:
 
     def edit_unit(self) -> None:
         """Edit an existing unit file."""
-        # TODO: Implement unit file parsing and editing
-        print("Edit functionality not yet implemented.")
+        unit_path = input("Enter full path to unit file: ").strip()
+        try:
+            with open(unit_path, 'r') as f:
+                content = f.read()
+            
+            # Parse the unit file
+            self.unit_data = {'Unit': {}, 'Service': {}, 'Install': {}, 'Timer': {}}
+            current_section = None
+            
+            for line in content.split('\n'):
+                line = line.strip()
+                if line.startswith('[') and line.endswith(']'):
+                    current_section = line[1:-1]
+                elif '=' in line and current_section:
+                    key, value = line.split('=', 1)
+                    self.unit_data[current_section][key.strip()] = value.strip()
+            
+            # Extract unit name and type from path
+            self.unit_name = os.path.splitext(os.path.basename(unit_path))[0]
+            self.unit_type = os.path.splitext(unit_path)[1][1:]
+            
+            print(f"\nLoaded {self.unit_name}.{self.unit_type} for editing")
+            self._edit_loaded_unit()
+            
+        except FileNotFoundError:
+            print(f"Error: File {unit_path} not found")
+        except Exception as e:
+            print(f"Error loading unit file: {e}")
+
+    def _edit_loaded_unit(self) -> None:
+        """Edit the currently loaded unit."""
+        while True:
+            print("\nEDIT UNIT")
+            print("1. Edit Unit section")
+            print("2. Edit Service section")
+            print("3. Edit Install section")
+            print("4. Edit Timer section")
+            print("5. Back to main menu")
+            
+            choice = input("Select section to edit (1-5): ").strip()
+            
+            if choice == '1':
+                self._edit_section('Unit')
+            elif choice == '2':
+                self._edit_section('Service')
+            elif choice == '3':
+                self._edit_section('Install')
+            elif choice == '4':
+                self._edit_section('Timer')
+            elif choice == '5':
+                break
+            else:
+                print("Invalid choice")
+
+    def _edit_section(self, section: str) -> None:
+        """Edit a specific section of the unit."""
+        print(f"\nEDITING {section} SECTION")
+        print("Current values:")
+        for key, value in self.unit_data[section].items():
+            print(f"{key}={value}")
+        
+        print("\n1. Add/Modify option")
+        print("2. Remove option")
+        print("3. Back")
+        
+        choice = input("Select action (1-3): ").strip()
+        
+        if choice == '1':
+            key = input("Option name: ").strip()
+            value = input(f"Value for {key}: ").strip()
+            self.unit_data[section][key] = value
+        elif choice == '2':
+            key = input("Option to remove: ").strip()
+            if key in self.unit_data[section]:
+                del self.unit_data[section][key]
+            else:
+                print(f"{key} not found in section")
+        elif choice != '3':
+            print("Invalid choice")
+
+    def _use_template(self) -> None:
+        """Use a predefined template."""
+        templates = {
+            '1': {
+                'name': 'Web Application',
+                'type': 'service',
+                'data': {
+                    'Unit': {
+                        'Description': 'Web Application Service',
+                        'After': 'network.target'
+                    },
+                    'Service': {
+                        'Type': 'simple',
+                        'ExecStart': '/usr/bin/python3 /path/to/app.py',
+                        'Restart': 'always',
+                        'User': 'www-data',
+                        'WorkingDirectory': '/path/to/app'
+                    },
+                    'Install': {
+                        'WantedBy': 'multi-user.target'
+                    }
+                }
+            },
+            '2': {
+                'name': 'Periodic Task',
+                'type': 'timer',
+                'data': {
+                    'Unit': {
+                        'Description': 'Periodic Task Timer'
+                    },
+                    'Timer': {
+                        'OnCalendar': 'daily',
+                        'Persistent': 'true',
+                        'Unit': 'example.service'
+                    },
+                    'Install': {
+                        'WantedBy': 'timers.target'
+                    }
+                }
+            }
+        }
+        
+        print("\nAVAILABLE TEMPLATES:")
+        for key, template in templates.items():
+            print(f"{key}. {template['name']}")
+        
+        choice = input("Select template (1-2): ").strip()
+        if choice in templates:
+            template = templates[choice]
+            self.unit_name = input(f"Unit name for {template['name']}: ").strip()
+            self.unit_type = template['type']
+            self.unit_data = template['data']
+            print(f"\nLoaded {template['name']} template")
+            self._edit_loaded_unit()
+        else:
+            print("Invalid template choice")
 
     def generate_file(self) -> None:
         """Generate the systemd unit file."""
