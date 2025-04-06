@@ -25,7 +25,18 @@ class UnitCtl:
         """Display main menu and handle user choices."""
         while True:
             print("\nSYSTEMD UNIT CREATOR")
-            print("1. Create new unit")
+            if self.unit_name:
+                print(f"\nCurrent Unit: {self.unit_name}.{self.unit_type}")
+                if 'Description' in self.unit_data['Unit']:
+                    print(f"Description: {self.unit_data['Unit']['Description']}")
+                if 'ExecStart' in self.unit_data.get('Service', {}):
+                    print(f"ExecStart: {self.unit_data['Service']['ExecStart']}")
+                if 'OnCalendar' in self.unit_data.get('Timer', {}):
+                    print(f"Schedule: {self.unit_data['Timer']['OnCalendar']}")
+            else:
+                print("\nNo unit currently loaded")
+                
+            print("\n1. Create new unit")
             print("2. Edit existing unit")
             print("3. Save unit file")
             print("4. Use template")
