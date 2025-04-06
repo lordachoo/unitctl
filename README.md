@@ -75,6 +75,7 @@ The menu dynamically adjusts based on whether a unit is currently loaded:
 
 **Editing Features:**
 - Section-by-section editing (Unit, Service, Install, Timer)
+- Change unit name and type while editing
 - Add/modify/remove individual options
 - Preserve all existing settings when editing
 - Real-time validation feedback
