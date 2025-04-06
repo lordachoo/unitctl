@@ -40,7 +40,8 @@ class UnitCtl:
             print("2. Edit existing unit")
             print("3. Save unit file")
             print("4. Use template")
-            print("5. Exit")
+            print("5. Validate unit")
+            print("6. Exit")
             choice = input("Select option (1-5): ").strip()
             
             if choice == '1':
@@ -52,6 +53,8 @@ class UnitCtl:
             elif choice == '4':
                 self._use_template()
             elif choice == '5':
+                self.validate_unit()
+            elif choice == '6':
                 sys.exit(0)
             else:
                 print("Invalid choice, please try again.")
@@ -328,10 +331,71 @@ class UnitCtl:
         else:
             print("Invalid template choice")
 
+    def validate_unit(self) -> bool:
+        """Validate the current unit configuration against best practices."""
+        errors = []
+        warnings = []
+        
+        # Check required sections
+        if not self.unit_data['Unit'].get('Description'):
+            warnings.append("Unit section should include Description")
+            
+        # Service-specific validation
+        if self.unit_type == 'service':
+            if not self.unit_data['Service'].get('ExecStart'):
+                errors.append("Service must have ExecStart")
+            if not self.unit_data['Service'].get('Type'):
+                warnings.append("Service should specify Type (defaults to simple)")
+                
+            # Check paths in ExecStart
+            exec_start = self.unit_data['Service'].get('ExecStart', '')
+            if exec_start and exec_start[0] == '/':
+                path = exec_start.split()[0]
+                if not os.path.exists(path):
+                    warnings.append(f"ExecStart path {path} does not exist")
+                    
+        # Timer-specific validation
+        elif self.unit_type == 'timer':
+            if not self.unit_data['Timer'].get('OnCalendar'):
+                errors.append("Timer must have OnCalendar")
+            if not self.unit_data['Timer'].get('Unit'):
+                warnings.append("Timer should specify Unit to activate")
+                
+        # Check WorkingDirectory exists
+        wd = self.unit_data.get('Service', {}).get('WorkingDirectory')
+        if wd and not os.path.isdir(wd):
+            warnings.append(f"WorkingDirectory {wd} does not exist")
+            
+        # Check User exists
+        user = self.unit_data.get('Service', {}).get('User')
+        if user and user != 'root':
+            try:
+                import pwd
+                pwd.getpwnam(user)
+            except KeyError:
+                warnings.append(f"User {user} does not exist")
+                
+        # Print validation results
+        if errors or warnings:
+            print("\nVALIDATION RESULTS:")
+            for error in errors:
+                print(f"ERROR: {error}")
+            for warning in warnings:
+                print(f"WARNING: {warning}")
+                
+            if errors:
+                print("\nCannot save - please fix errors first")
+                return False
+                
+        return True
+
     def generate_file(self) -> None:
         """Generate the systemd unit file."""
         if not self.unit_name:
             print("No unit configured. Please create a unit first.")
+            return
+            
+        if not self.validate_unit():
             return
             
         content = []
