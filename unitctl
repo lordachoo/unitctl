@@ -376,17 +376,21 @@ class UnitCtl:
                 warnings.append(f"User {user} does not exist")
                 
         # Print validation results
-        if errors or warnings:
-            print("\nVALIDATION RESULTS:")
-            for error in errors:
-                print(f"ERROR: {error}")
-            for warning in warnings:
-                print(f"WARNING: {warning}")
-                
-            if errors:
-                print("\nCannot save - please fix errors first")
-                return False
-                
+        print("\nVALIDATION RESULTS:")
+        if not errors and not warnings:
+            print("✓ Unit configuration is valid")
+            return True
+            
+        for error in errors:
+            print(f"✗ ERROR: {error}")
+        for warning in warnings:
+            print(f"⚠ WARNING: {warning}")
+            
+        if errors:
+            print("\nCannot save - please fix errors first")
+            return False
+            
+        print("\nUnit has warnings but can be saved")
         return True
 
     def generate_file(self) -> None:
