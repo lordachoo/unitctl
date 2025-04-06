@@ -198,6 +198,44 @@ class SystemdUnitCreator:
         """Use a predefined template."""
         templates = {
             '1': {
+                'name': 'Simple Service',
+                'type': 'service',
+                'data': {
+                    'Unit': {
+                        'Description': 'Simple Background Service',
+                        'After': 'network.target'
+                    },
+                    'Service': {
+                        'Type': 'simple',
+                        'ExecStart': '/path/to/your/command',
+                        'Restart': 'on-failure',
+                        'User': 'nobody',
+                        'WorkingDirectory': '/tmp'
+                    },
+                    'Install': {
+                        'WantedBy': 'multi-user.target'
+                    }
+                }
+            },
+            '2': {
+                'name': 'One-shot Service',
+                'type': 'service',
+                'data': {
+                    'Unit': {
+                        'Description': 'One-time Execution Service',
+                        'After': 'network.target'
+                    },
+                    'Service': {
+                        'Type': 'oneshot',
+                        'ExecStart': '/path/to/your/command',
+                        'RemainAfterExit': 'yes'
+                    },
+                    'Install': {
+                        'WantedBy': 'multi-user.target'
+                    }
+                }
+            },
+            '3': {
                 'name': 'Web Application',
                 'type': 'service',
                 'data': {
@@ -217,7 +255,29 @@ class SystemdUnitCreator:
                     }
                 }
             },
-            '2': {
+            '4': {
+                'name': 'OpenVPN Client',
+                'type': 'service',
+                'data': {
+                    'Unit': {
+                        'Description': 'OpenVPN Client Connection',
+                        'After': 'network.target'
+                    },
+                    'Service': {
+                        'Type': 'simple',
+                        'ExecStart': '/usr/sbin/openvpn --config /etc/openvpn/client.conf',
+                        'Restart': 'on-failure',
+                        'User': 'root',
+                        'Group': 'nogroup',
+                        'PrivateTmp': 'true',
+                        'ProtectSystem': 'full'
+                    },
+                    'Install': {
+                        'WantedBy': 'multi-user.target'
+                    }
+                }
+            },
+            '5': {
                 'name': 'Periodic Task',
                 'type': 'timer',
                 'data': {
@@ -238,12 +298,15 @@ class SystemdUnitCreator:
         
         print("\nAVAILABLE TEMPLATES:")
         for key, template in templates.items():
-            print(f"{key}. {template['name']}")
+            print(f"{key}. {template['name']} ({template['type']})")
         
         print("\nSelect template:")
-        print("1. Web Application (service)")
-        print("2. Periodic Task (timer)")
-        choice = input("Enter choice (1-2): ").strip()
+        print("1. Simple Service")
+        print("2. One-shot Service") 
+        print("3. Web Application")
+        print("4. OpenVPN Client")
+        print("5. Periodic Task")
+        choice = input("Enter choice (1-5): ").strip()
         if choice in templates:
             template = templates[choice]
             self.unit_name = input(f"Unit name for {template['name']}: ").strip()
